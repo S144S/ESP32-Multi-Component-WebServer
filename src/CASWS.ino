@@ -49,9 +49,13 @@ WebSocketsServer webSocket = WebSocketsServer(1337);
 void system_config();
 
 void server_config();
+
+void page_404_request(AsyncWebServerRequest *request);
 /****************************MAIN BODY******************************/
 void setup() {
     system_config();
+
+    server_config();
 }
 /*-----------------------------------------------------------------*/
 void loop() {
@@ -66,7 +70,38 @@ void system_config() {
     pinMode(PUSH_BUTTON, INPUT);
 
     Serial.println("Welcome to Cayan Async Sample Web Server");
-    Serial.println("Version 1.0.0");
+    Serial.println("           Version 1.0.0");
     Serial.println("--------------------------------------------");
 }
+/*-----------------------------------------------------------------*/
+void server_config() {
+    WiFi.softAP(SSID, PASS);
+    delay(50);
+
+    if(!MDNS.begin(DOMAIN_NAME))
+    {
+        Serial.println("SERVER DOES NOT ACCEPT DOMAIN NAME");
+        delay(500);
+        while(true)
+        {
+            // System stop working
+        }
+    }
+    Serial.println("SERVER CREATED SUCCESSFULLY");
+
+    server.onNotFound(page_404_request);
+
+    server.begin();
+    Serial.println("SERVER STARTED");
+    Serial.println("--------------------------------------------");
+}
+/*-----------------------------------------------------------------*/
+void page_404_request(AsyncWebServerRequest *request) {
+    IPAddress remote_ip = request->client()->remoteIP();
+    Serial.println("[" + remote_ip.toString() +
+                  "] HTTP GET request of " + request->url());
+  request->send(404, "text/html", page_not_found);
+}
+/*-----------------------------------------------------------------*/
+/*-----------------------------------------------------------------*/
 /*-----------------------------------------------------------------*/
