@@ -1,6 +1,74 @@
 #ifndef WEBPAGES_HH
 #define WEBPAGES_HH
 
+char home_page[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Wellcome to CASWS</title>
+
+		<script language="javascript" type="text/javascript">
+
+		var url = "ws://192.168.1.1:1337/";
+
+		// This is called when the page finishes loading
+		function ws_config() {		
+			// Connect to WebSocket server
+			connect_to_ws(url);
+		}
+
+		// Call this to connect to the WebSocket server
+		function connect_to_ws(url) {
+			
+			// Connect to WebSocket server
+			websocket = new WebSocket(url);
+			
+			// Assign callbacks
+			websocket.onopen = function(evt) { onOpen(evt) };
+			websocket.onclose = function(evt) { onClose(evt) };
+			websocket.onmessage = function(evt) { onMessage(evt) };
+			websocket.onerror = function(evt) { onError(evt) };
+		}
+
+		// Called when a WebSocket connection is established with the server
+		function onOpen(evt) {
+			// Log connection state
+			console.log("Connected");		
+			// Get the current state of the LED
+			send_to_server("CL: client connected");
+		}
+
+		// Called when the WebSocket connection is closed
+		function onClose(evt) {
+
+			// Log disconnection state
+			console.log("Disconnected");
+			
+			// Try to reconnect after a few seconds
+			setTimeout(function() { wsConnect(url) }, 200);
+		}
+		// Called when a WebSocket error occurs
+		function onError(evt) {
+			console.log("ERROR: " + evt.data);
+		}
+
+		// Sends a message to the server (and prints it to the console)
+		function send_to_server(message) {
+			console.log("Sending: " + message);
+			websocket.send(message);
+		}
+
+
+		// Call the init function as soon as the page loads
+		window.addEventListener("load", ws_config, false);
+
+		</script>
+	</head>
+	<h1>Cayan Async Sample WebServer</h1>
+</html>
+)=====";
+
 char page_not_found[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
