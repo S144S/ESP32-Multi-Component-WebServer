@@ -45,11 +45,18 @@ const int LED           =5;
 const int PUSH_BUTTON   =32;
 /***************************PUBLIC VARS*****************************/
 bool web_request_done = false;
+
+bool new_packet = false;
+String packet_data = "";
+
+bool led_state = false;
 /*****************************CLASSES*******************************/
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(1337);
 DNSServer dnsServer;
 IPAddress apIP(192, 168, 1, 1);
+
+DynamicJsonDocument json_data(1024);
 /****************************FUNCTIONS******************************/
 void system_config();
 
@@ -60,6 +67,10 @@ void websocket_callback(byte client_num, WStype_t type,
 
 void page_home_request(AsyncWebServerRequest *request);
 void page_404_request(AsyncWebServerRequest *request);
+
+bool packet_parser(String rec_packet);
+
+bool apply_user_setting();
 /****************************MAIN BODY******************************/
 void setup() {
     system_config();
@@ -69,6 +80,12 @@ void setup() {
 /*-----------------------------------------------------------------*/
 void loop() {
     webSocket.loop();
+    if(new_packet)
+    {
+        packet_parser(packet_data);
+        apply_user_setting();
+
+    }
 }
 /*************************FUNCTIONS BODY****************************/
 void system_config() {
@@ -123,7 +140,14 @@ void websocket_callback(byte client_num, WStype_t type,
         // Handle text messages from client
         case WStype_TEXT:
             // Print out raw message
+            new_packet = true;
             Serial.printf("[%u] %s\n", client_num, payload);
+            packet_data = String((char*)( payload));
+            Serial.println(packet_data);
+            if(!packet_data.startsWith("{"))
+            {
+                new_packet = false;
+            }
             break;
         // For everything else: do nothing
         case WStype_BIN:
@@ -154,5 +178,26 @@ void page_404_request(AsyncWebServerRequest *request) {
   request->send(404, "text/html", page_not_found);
 }
 /*-----------------------------------------------------------------*/
+bool packet_parser(String rec_packet) {
+    Serial.print("PACKET NEED TO BE PARSED: ");
+    Serial.println(rec_packet);
+    //deserializeJson(json_data, rec_packet);    
+    DeserializationError error = deserializeJson(json_data, rec_packet);
+    if (error) 
+    {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+    led_state = json_data["LED"];
+    Serial.println(led_state);
+    new_packet = false;
+    return true;
+}
 /*-----------------------------------------------------------------*/
+bool apply_user_setting() {
+    digitalWrite(LED, !led_state);
+
+    return true;
+}
 /*-----------------------------------------------------------------*/
