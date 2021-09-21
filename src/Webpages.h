@@ -10,7 +10,7 @@ char home_page[] PROGMEM = R"=====(
 
 		<script language="javascript" type="text/javascript">
 
-		var url = "ws://192.168.1.1:1337/";
+		var url = "ws://"+location.hostname+":1337/";
 
 		// This is called when the page finishes loading
 		function ws_config() {		
