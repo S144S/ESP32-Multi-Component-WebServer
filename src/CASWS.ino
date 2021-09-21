@@ -66,6 +66,7 @@ void websocket_callback(byte client_num, WStype_t type,
                         byte *payload, size_t length);
 
 void page_home_request(AsyncWebServerRequest *request);
+void page_second_request(AsyncWebServerRequest *request);
 void page_404_request(AsyncWebServerRequest *request);
 
 bool packet_parser(String rec_packet);
@@ -109,6 +110,7 @@ void server_config() {
     Serial.println("SERVER CREATED SUCCESSFULLY");
 
     server.on("/", HTTP_GET, page_home_request);
+    server.on("/second-page", HTTP_GET, page_second_request);
     server.onNotFound(page_404_request);
 
     server.begin();
@@ -169,6 +171,13 @@ void page_home_request(AsyncWebServerRequest *request) {
   Serial.println("[" + remote_ip.toString() +
                   "] HTTP GET request of " + request->url());
   request->send_P(200, "text/html", home_page);
+}
+/*-----------------------------------------------------------------*/
+void page_second_request(AsyncWebServerRequest *request) {
+  IPAddress remote_ip = request->client()->remoteIP();
+  Serial.println("[" + remote_ip.toString() +
+                  "] HTTP GET request of " + request->url());
+  request->send_P(200, "text/html", second_page);
 }
 /*-----------------------------------------------------------------*/
 void page_404_request(AsyncWebServerRequest *request) {

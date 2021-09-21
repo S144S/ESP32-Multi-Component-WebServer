@@ -13,19 +13,30 @@ char home_page[] PROGMEM = R"=====(
 
 		<script language="javascript" type="text/javascript">
 
-			var url = "ws://192.168.1.1:1337/";
+			var url = "ws://"+location.hostname+":1337/";
+
 			var packet_obj = new Object();
+
 			var packet_data;
 			var led_button;
 			var led_shape;
 			var led_text;
 			var led_data = 0;
 
+			var valid_username = "admin";
+			var valid_password = "admin";
+			var show_pass_btn;
+			var input_user;
+			var input_pass;
+
 			// This is called when the page finishes loading
 			function ws_config() {
 				led_button = document.getElementById("btn1");
 				led_body = document.getElementsByClassName("led_shape")[0];
 				led_text = document.getElementById("led_status");
+
+				input_user = document.getElementById("user_name");
+				input_pass = document.getElementById("pass_word");
 				// Connect to WebSocket server
 				connect_to_ws(url);
 			}
@@ -94,6 +105,31 @@ char home_page[] PROGMEM = R"=====(
 				packet_data = JSON.stringify(packet_obj);
 				console.log("Packet: " + packet_data);
 				send_to_server(packet_data);
+			}
+
+			function show_password() {
+				if (input_pass.type === "password")
+				{
+					input_pass.type = "text";
+				}
+				else
+				{
+					input_pass.type = "password";
+				}
+			}
+
+			function try_loin() {
+				if(input_user.value == valid_username)
+				{
+					if(input_pass.value == valid_password)
+					{
+						window.location = 'http://'+location.hostname+'/second-page';
+					}
+				}
+				else
+				{
+					alert("Wrong username or password");
+				}
 			}
 
 			// Call the init function as soon as the page loads
@@ -210,10 +246,10 @@ char home_page[] PROGMEM = R"=====(
 			<label class="labels">Password:</label>
 			<input type="password" placeholder="Password" name="password" id="pass_word" required>
 			<br>
-			<input type="checkbox" style="margin-left: 85px;">
+			<input type="checkbox" style="margin-left: 85px;" onclick="show_password()">
 			<label class="labels">Show Password</label>
 			<br><br>
-			<input type="submit" value="Login" id="login_btn">
+			<input type="submit" value="Login" id="login_btn" onclick="try_loin()">
 		</div>
 		<hr class="sepretor">
 	</div>
@@ -224,6 +260,79 @@ char home_page[] PROGMEM = R"=====(
 
 </html>
 
+)=====";
+
+char second_page[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="description" content="Sample webserver using ESP32">
+		<meta name="author" content="Saeed Hosseini">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Wellcome to CASWS Second Page</title>
+
+		<script language="javascript" type="text/javascript">
+
+			function back_to_home() {
+				window.location = 'http://'+location.hostname+'/';
+			}
+		</script>
+
+		<style>
+			body {
+				background-color: rgba(252,163,3,255);
+			}
+			h1 {
+				color: white;
+				font-family: "Lucida Console", "Courier New", monospace;
+				font-size: 50px;
+				text-align: center;
+			}
+			hr.solid {
+				border-top: 3px solid rgba(52,195,235,255);
+			}
+
+			hr.sepretor {
+				border-top: 3px solid rgba(108,112,109,255);
+			}
+
+			.btn_pos {
+				display: flex;
+			  justify-content: center;
+			  align-items: center;
+			  height: 80px;
+				margin-top: 20px;
+			}
+
+			#home_btn {
+				background-color: rgba(222,69,58,255);
+				width: 400px;
+				height: 100px;
+				border-radius: 15px;
+				color: white;
+				padding: 16px 32px;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 26px;
+				margin: 4px 2px;
+				transition-duration: 0.2s;
+				cursor: pointer;
+			}
+		</style>
+
+	</head>
+
+	<h1>Second Page</h1>
+
+	<hr class="solid">
+
+	<div>
+		<div class="btn_pos">
+		  <button id="home_btn" onclick="back_to_home()">BACK TO HOME</button>
+		</div>
+	</div>
+</html>
 )=====";
 
 char page_not_found[] PROGMEM = R"=====(
