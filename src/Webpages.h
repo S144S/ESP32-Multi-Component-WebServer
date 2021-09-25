@@ -29,6 +29,11 @@ char home_page[] PROGMEM = R"=====(
 			var input_user;
 			var input_pass;
 
+			var data_table;
+			var voltage_value = 0;
+			var currenet_value = 0;
+			var temperature_value = 0;
+
 			// This is called when the page finishes loading
 			function ws_config() {
 				led_button = document.getElementById("btn1");
@@ -37,6 +42,8 @@ char home_page[] PROGMEM = R"=====(
 
 				input_user = document.getElementById("user_name");
 				input_pass = document.getElementById("pass_word");
+
+				data_table = document.getElementById("table_1");
 				// Connect to WebSocket server
 				connect_to_ws(url);
 			}
@@ -71,6 +78,17 @@ char home_page[] PROGMEM = R"=====(
 				// Try to reconnect after a few seconds
 				setTimeout(function() { wsConnect(url) }, 200);
 			}
+
+			// Called when a message is received from the server
+			function onMessage(evt) {
+				console.log("Received: " + evt.data);
+				received_packet = JSON.parse(evt.data);
+				voltage_value = received_packet.VOLTAGE;
+				currenet_value = received_packet.CURRENT;
+				temperature_value = received_packet.TEMPERATURE;
+				Update_Data_Table();
+			}
+
 			// Called when a WebSocket error occurs
 			function onError(evt) {
 				console.log("ERROR: " + evt.data);
@@ -130,6 +148,18 @@ char home_page[] PROGMEM = R"=====(
 				{
 					alert("Wrong username or password");
 				}
+			}
+
+			function Update_Data_Table() {
+				var voltage_Cells = data_table.rows.item(1).cells;
+				var current_Cells = data_table.rows.item(2).cells;
+				var temperatue_Cells = data_table.rows.item(3).cells;
+				voltage_Cells.item(1).innerHTML = voltage_value;
+				current_Cells.item(1).innerHTML = currenet_value;
+				temperatue_Cells.item(1).innerHTML = temperature_value;
+				console.log(voltage_Cells.item(1));
+				console.log(current_Cells.item(1));
+				console.log(temperatue_Cells.item(1));
 			}
 
 			// Call the init function as soon as the page loads
@@ -220,6 +250,73 @@ char home_page[] PROGMEM = R"=====(
 				padding: 16px 32px;
 				cursor: pointer;
 			}
+
+			#user_data_title {
+				color: rgba(105,12,58,255);
+				font-family: "Lucida Console", "Courier New", monospace;
+				font-size: 30px;
+				text-align: center;
+				margin-bottom: 20px;
+			}
+			.user_data_table {
+				margin-left: auto;
+				margin-right: auto;
+				overflow-x: auto;
+			}
+			table, th, td {
+			  border: 2px solid rgba(52,52,59,255);
+				border-radius: 5px;
+				border-spacing: 10px;
+				vertical-align: middle;
+				margin-bottom: 20px;
+			}
+			th, td {
+			  border: 2px solid rgba(52,52,59,255);
+				border-radius: 5px;
+				padding-top: 10px;
+				padding-bottom: 20px;
+				padding-left: 30px;
+				padding-right: 40px;
+				font-family: "Lucida Console", "Courier New", monospace;
+				font-size: 15px;
+				font-weight: bold;
+				text-align: center;
+				vertical-align: middle;
+			}
+			tr:nth-child(even) {
+  			background-color: #D6EEEE;
+			}
+			tr:nth-child(odd){
+				background-color: rgba(99,168,141,255);
+			}
+
+			.message_container {
+				  display: flex;
+				  flex-wrap: nowrap;
+				  /*background-color: DodgerBlue;*/
+					flex-direction: row;
+					justify-content: center;
+					align-items: center;
+				}
+			.message_container > div {
+				  background-color: #f1f1f1;
+					border-radius: 7px;
+				  width: 190px;
+				  margin: 30px;
+				  text-align: center;
+				  line-height: 70px;
+				  font-size: 30px;
+			}
+			@media (max-width: 800px) {
+			  	.message_container {
+						flex-wrap: nowrap;
+						flex: 100%;
+				    flex-direction: column;
+						justify-content: center;
+						align-items: center;
+			  	}
+			}
+
 		</style>
 
 	</head>
@@ -254,10 +351,42 @@ char home_page[] PROGMEM = R"=====(
 		<hr class="sepretor">
 	</div>
 
-	<!--<div style="border: 3px solid green;">
-		<button id="btn2" onclick="btn_2()">some text</button>
-	</div>-->
+	<div>
+		<h2 id="user_data_title">User Input Data</h2>
+		<div>
+			<table class="user_data_table" id="table_1">
+				<tr>
+					<th>Parameter</th>
+					<th>Value</th>
+					<th>Unit</th>
+				</tr>
+				<tr>
+			    <td>Voltage</td>
+			    <td>0</td>
+			    <td>v</td>
+			  </tr>
+			  <tr>
+			    <td>Current</td>
+			    <td>0</td>
+			    <td>A</td>
+			  </tr>
+				<tr>
+			    <td>Temperature</td>
+			    <td>0</td>
+			    <td>c</td>
+			  </tr>
+			</table>
 
+			<div class="message_container">
+				<div>Voltage Normal</div>
+				<div>Current Normal</div>
+				<div>Temperature Normal</div>
+			</div>
+		</div>
+	</div>
+	<hr class="sepretor">
+<!--<div style="border: 3px solid green;">
+</div>-->
 </html>
 
 )=====";

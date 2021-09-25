@@ -33,6 +33,8 @@
 #include "Webpages.h"
 
 /****************************CONSTANTS******************************/
+#define DATA_OFFSET     1100
+
 const char *SSID        ="CAYAN_AWS";
 const char *PASS        ="12345678";
 const char *DOMAIN_NAME ="casws";
@@ -44,12 +46,21 @@ const int WS_PORT       =1337;
 const int LED           =5; 
 const int PUSH_BUTTON   =32;
 /***************************PUBLIC VARS*****************************/
+int task_cnt = 0;
+
 bool web_request_done = false;
 
 bool new_packet = false;
 String packet_data = "";
 
 bool led_state = false;
+
+float voltage = 0.0;
+float current = 0.0;
+float temperature = 0.0;
+String moitoring_packet = "";
+bool data_ready = false;
+bool data_sent = false;
 /*****************************CLASSES*******************************/
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(1337);
@@ -72,6 +83,10 @@ void page_404_request(AsyncWebServerRequest *request);
 bool packet_parser(String rec_packet);
 
 bool apply_user_setting();
+
+void Collect_Data();
+void JSON_Creator();
+void Brodcast_Data_To_Server();
 /****************************MAIN BODY******************************/
 void setup() {
     system_config();
@@ -87,6 +102,25 @@ void loop() {
         apply_user_setting();
 
     }
+
+    if((task_cnt % DATA_OFFSET) == 0)
+    {
+        Collect_Data();
+        if(data_ready)
+        {
+            JSON_Creator();
+            data_ready = false;
+            data_sent = true;
+        }
+        if(data_sent)
+        {
+            Brodcast_Data_To_Server();
+            data_sent = false;
+        }
+    }
+
+    task_cnt++;
+    delay(1);
 }
 /*************************FUNCTIONS BODY****************************/
 void system_config() {
@@ -208,5 +242,28 @@ bool apply_user_setting() {
     digitalWrite(LED, !led_state);
 
     return true;
+}
+/*-----------------------------------------------------------------*/
+void Collect_Data() {
+    voltage = voltage + 2.1;
+    current = current + 0.5;
+    temperature = temperature + 1.23;
+    data_ready = true;
+}
+/*-----------------------------------------------------------------*/
+void JSON_Creator() {
+    moitoring_packet = "{\"VOLTAGE\":";
+    moitoring_packet += voltage;
+    moitoring_packet += ",\"CURRENT\":";
+    moitoring_packet += current;
+    moitoring_packet += ",\"TEMPERATURE\":";
+    moitoring_packet += temperature;    
+    moitoring_packet += "}";
+   Serial.println(moitoring_packet);     
+   data_sent = true;
+}
+/*-----------------------------------------------------------------*/
+void Brodcast_Data_To_Server() {
+    webSocket.broadcastTXT(moitoring_packet); 
 }
 /*-----------------------------------------------------------------*/
